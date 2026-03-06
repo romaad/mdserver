@@ -2,17 +2,18 @@ import http.server
 import socketserver
 import os
 import urllib.parse
+import string
 
 PORT = 8090
 WEB_ROOT = "/home/ramadan/.openclaw/workspace"
 
 # Simple HTML template for the directory listing
-LISTING_TEMPLATE = """
+LISTING_TEMPLATE = string.Template("""
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index of {path}</title>
+    <title>Index of ${path}</title>
     <style>
         :root {
             --bg-color: #fff;
@@ -52,71 +53,71 @@ LISTING_TEMPLATE = """
     </style>
 </head>
 <body>
-    <h1>Index of {path}</h1>
+    <h1>Index of ${path}</h1>
     <input type="text" id="search" placeholder="Search files..." onkeyup="filterList()">
     <ul id="file-list">
-        {items}
+        ${items}
     </ul>
     <script>
-        function filterList() {{
+        function filterList() {
             const input = document.getElementById('search');
             const filter = input.value.toLowerCase();
             const ul = document.getElementById('file-list');
             const li = ul.getElementsByTagName('li');
-            for (let i = 0; i < li.length; i++) {{
+            for (let i = 0; i < li.length; i++) {
                 const a = li[i].getElementsByTagName('a')[0];
                 const txtValue = a.textContent || a.innerText;
-                if (txtValue.toLowerCase().indexOf(filter) > -1) {{
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
                     li[i].style.display = "";
-                }} else {{
+                } else {
                     li[i].style.display = "none";
-                }}
-            }}
-        }}
+                }
+            }
+        }
     </script>
 </body>
 </html>
-"""
+""")
 
 # HTML template for the markdown viewer
-VIEWER_TEMPLATE = """
+VIEWER_TEMPLATE = string.Template("""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{filename}</title>
+    <title>${filename}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        @media (prefers-color-scheme: dark) {{
-            body {{ background-color: #0d1117 !important; color: #c9d1d9 !important; }}
-            .markdown-body {{ color: #c9d1d9 !important; }}
-            .header {{ background: #161b22 !important; border-bottom-color: #30363d !important; }}
-            .btn {{ background: #0d1117 !important; color: #c9d1d9 !important; border-color: #30363d !important; }}
-            .btn:hover {{ background-color: #30363d !important; }}
-            #source-view {{ background: #0d1117 !important; color: #c9d1d9 !important; }}
-        }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }}
-        .header {{ background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }}
-        .markdown-body {{ box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; }}
-        @media (max-width: 767px) {{ .markdown-body {{ padding: 15px; }} }}
-        #source-view {{ display: none; white-space: pre-wrap; font-family: monospace; background: #fff; padding: 20px; overflow: auto; margin: 0 auto; max-width: 980px; }}
-        .btn {{ cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }}
-        .btn:hover {{ background-color: #f3f4f6; }}
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #0d1117 !important; color: #c9d1d9 !important; }
+            .markdown-body { color: #c9d1d9 !important; }
+            .header { background: #161b22 !important; border-bottom-color: #30363d !important; }
+            .btn { background: #0d1117 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+            .btn:hover { background-color: #30363d !important; }
+            #source-view { background: #0d1117 !important; color: #c9d1d9 !important; }
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }
+        .header { background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; }
+        @media (max-width: 767px) { .markdown-body { padding: 15px; } }
+        #source-view { display: none; white-space: pre-wrap; font-family: monospace; background: #fff; padding: 20px; overflow: auto; margin: 0 auto; max-width: 980px; }
+        .btn { cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }
+        .btn:hover { background-color: #f3f4f6; }
     </style>
     <script>
         // Check for dark mode and swap markdown CSS
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {{
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.querySelector('link[rel="stylesheet"]').href = "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css";
-        }}
+        }
     </script>
 </head>
 <body>
     <div class="header">
         <div>
             <a href="/" class="btn">⬅ Back</a>
-            <span style="margin-left: 10px; font-weight: bold;">{filename}</span>
+            <span style="margin-left: 10px; font-weight: bold;">${filename}</span>
         </div>
         <div>
             <button class="btn" onclick="toggleView()">Source / Rendered</button>
@@ -125,36 +126,36 @@ VIEWER_TEMPLATE = """
     </div>
 
     <div id="content" class="markdown-body"></div>
-    <pre id="source-view">{raw_content}</pre>
+    <pre id="source-view">${raw_content}</pre>
 
     <script>
         const rawContent = document.getElementById('source-view').textContent;
         document.getElementById('content').innerHTML = marked.parse(rawContent);
 
-        function toggleView() {{
+        function toggleView() {
             const content = document.getElementById('content');
             const source = document.getElementById('source-view');
-            if (source.style.display === 'none') {{
+            if (source.style.display === 'none') {
                 source.style.display = 'block';
                 content.style.display = 'none';
-            }} else {{
+            } else {
                 source.style.display = 'none';
                 content.style.display = 'block';
-            }}
-        }}
+            }
+        }
     </script>
 </body>
 </html>
-"""
+""")
 
 # HTML template for code viewer
-CODE_TEMPLATE = """
+CODE_TEMPLATE = string.Template("""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{filename}</title>
+    <title>${filename}</title>
     <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
@@ -177,8 +178,8 @@ CODE_TEMPLATE = """
             --btn-border: #d1d5da;
             --btn-hover: #f3f4f6;
         }
-        @media (prefers-color-scheme: dark) {{
-            :root {{
+        @media (prefers-color-scheme: dark) {
+            :root {
                 --bg-color: #0d1117;
                 --text-color: #c9d1d9;
                 --header-bg: #161b22;
@@ -189,33 +190,33 @@ CODE_TEMPLATE = """
                 --btn-bg: #21262d;
                 --btn-border: #363b42;
                 --btn-hover: #30363d;
-            }}
-        }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-color); }}
-        .header {{ background: var(--header-bg); padding: 10px 20px; border-bottom: 1px solid var(--header-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }}
-        .container {{ padding: 20px; overflow-x: auto; }}
-        pre {{ margin: 0; padding: 10px; border-radius: 6px; background-color: var(--pre-bg); }}
-        code {{ font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }}
-        .btn {{ cursor: pointer; padding: 5px 12px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 3px; font-size: 14px; color: var(--text-color); text-decoration: none; display: inline-block; margin-left: 5px;}}
-        .btn:hover {{ background-color: var(--btn-hover); }}
+            }
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-color); }
+        .header { background: var(--header-bg); padding: 10px 20px; border-bottom: 1px solid var(--header-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        .container { padding: 20px; overflow-x: auto; }
+        pre { margin: 0; padding: 10px; border-radius: 6px; background-color: var(--pre-bg); }
+        code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }
+        .btn { cursor: pointer; padding: 5px 12px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 3px; font-size: 14px; color: var(--text-color); text-decoration: none; display: inline-block; margin-left: 5px;}
+        .btn:hover { background-color: var(--btn-hover); }
         /* Line numbers styling */
-        .hljs-ln-numbers {{ -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: var(--ln-color); border-right: 1px solid var(--ln-border); vertical-align: top; padding-right: 5px; }}
-        .hljs-ln-code {{ padding-left: 10px; }}
+        .hljs-ln-numbers { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: var(--ln-color); border-right: 1px solid var(--ln-border); vertical-align: top; padding-right: 5px; }
+        .hljs-ln-code { padding-left: 10px; }
         
         /* Wrap lines class */
-        .wrap-lines .hljs-ln-code {{ white-space: pre-wrap; word-wrap: break-word; }}
+        .wrap-lines .hljs-ln-code { white-space: pre-wrap; word-wrap: break-word; }
     </style>
     <script>
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {{
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.getElementById('hljs-theme').href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
-        }}
+        }
     </script>
 </head>
 <body>
     <div class="header">
         <div>
             <a href="/" class="btn">⬅ Back</a>
-            <span style="margin-left: 10px; font-weight: bold;">{filename}</span>
+            <span style="margin-left: 10px; font-weight: bold;">${filename}</span>
         </div>
         <div>
             <button class="btn" onclick="toggleWrap()">Wrap Lines</button>
@@ -225,32 +226,32 @@ CODE_TEMPLATE = """
     </div>
 
     <div class="container">
-        <pre><code id="code-block" class="language-{ext}">{content}</code></pre>
+        <pre><code id="code-block" class="language-${ext}">${content}</code></pre>
     </div>
 
     <script>
         hljs.highlightAll();
         hljs.initLineNumbersOnLoad();
 
-        function toggleWrap() {{
+        function toggleWrap() {
             document.querySelector('table').classList.toggle('wrap-lines');
-        }}
+        }
 
-        function copyToClipboard() {{
+        function copyToClipboard() {
             const code = document.getElementById('code-block').innerText;
-            navigator.clipboard.writeText(code).then(() => {{
+            navigator.clipboard.writeText(code).then(() => {
                 const btn = document.querySelector('button[onclick="copyToClipboard()"]');
                 const originalText = btn.innerText;
                 btn.innerText = "Copied!";
-                setTimeout(() => {{ btn.innerText = originalText; }}, 2000);
-            }}).catch(err => {{
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            }).catch(err => {
                 console.error('Failed to copy: ', err);
-            }});
-        }}
+            });
+        }
     </script>
 </body>
 </html>
-"""
+""")
 
 class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -294,7 +295,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
                 
                 items.append(f'<li><a href="{link_href}"><span class="icon">{icon}</span> {display_name}</a></li>')
             
-            self.wfile.write(LISTING_TEMPLATE.format(path=path, items="\n".join(items)).encode("utf-8"))
+            self.wfile.write(LISTING_TEMPLATE.substitute(path=path, items="\n".join(items)).encode("utf-8"))
             return
 
         # Check if it's a markdown file and user didn't ask for raw
@@ -311,7 +312,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
                 import html
                 safe_content = html.escape(content)
                 
-                self.wfile.write(VIEWER_TEMPLATE.format(
+                self.wfile.write(VIEWER_TEMPLATE.substitute(
                     filename=os.path.basename(full_path),
                     raw_content=safe_content
                 ).encode("utf-8"))
@@ -339,7 +340,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
                 import html
                 safe_content = html.escape(content)
                 
-                self.wfile.write(CODE_TEMPLATE.format(
+                self.wfile.write(CODE_TEMPLATE.substitute(
                     filename=os.path.basename(full_path),
                     ext=code_exts[ext],
                     content=safe_content
