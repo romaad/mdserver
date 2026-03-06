@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index of ${path}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="listing-view">
+    <h1>Index of ${path}</h1>
+    <input type="text" id="search" placeholder="Search files..." onkeyup="filterList()">
+    <ul id="file-list">
+        ${items}
+    </ul>
+    <script>
+        function filterList() {
+            const input = document.getElementById('search');
+            const filter = input.value.toLowerCase();
+            const ul = document.getElementById('file-list');
+            const li = ul.getElementsByTagName('li');
+            for (let i = 0; i < li.length; i++) {
+                const a = li[i].getElementsByTagName('a')[0];
+                const txtValue = a.textContent || a.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    li[i].style.display = "";
+                } else {
+                    li[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
