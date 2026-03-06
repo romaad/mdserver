@@ -89,27 +89,27 @@ VIEWER_TEMPLATE = """
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        @media (prefers-color-scheme: dark) {
-            body { background-color: #0d1117 !important; color: #c9d1d9 !important; }
-            .markdown-body { color: #c9d1d9 !important; }
-            .header { background: #161b22 !important; border-bottom-color: #30363d !important; }
-            .btn { background: #0d1117 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
-            .btn:hover { background-color: #30363d !important; }
-            #source-view { background: #0d1117 !important; color: #c9d1d9 !important; }
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }
-        .header { background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; }
-        @media (max-width: 767px) { .markdown-body { padding: 15px; } }
-        #source-view { display: none; white-space: pre-wrap; font-family: monospace; background: #fff; padding: 20px; overflow: auto; margin: 0 auto; max-width: 980px; }
-        .btn { cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }
-        .btn:hover { background-color: #f3f4f6; }
+        @media (prefers-color-scheme: dark) {{
+            body {{ background-color: #0d1117 !important; color: #c9d1d9 !important; }}
+            .markdown-body {{ color: #c9d1d9 !important; }}
+            .header {{ background: #161b22 !important; border-bottom-color: #30363d !important; }}
+            .btn {{ background: #0d1117 !important; color: #c9d1d9 !important; border-color: #30363d !important; }}
+            .btn:hover {{ background-color: #30363d !important; }}
+            #source-view {{ background: #0d1117 !important; color: #c9d1d9 !important; }}
+        }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }}
+        .header {{ background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }}
+        .markdown-body {{ box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; }}
+        @media (max-width: 767px) {{ .markdown-body {{ padding: 15px; }} }}
+        #source-view {{ display: none; white-space: pre-wrap; font-family: monospace; background: #fff; padding: 20px; overflow: auto; margin: 0 auto; max-width: 980px; }}
+        .btn {{ cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }}
+        .btn:hover {{ background-color: #f3f4f6; }}
     </style>
     <script>
         // Check for dark mode and swap markdown CSS
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {{
             document.querySelector('link[rel="stylesheet"]').href = "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css";
-        }
+        }}
     </script>
 </head>
 <body>
