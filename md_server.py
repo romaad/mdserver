@@ -134,6 +134,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
 class ReusableTCPServer(socketserver.TCPServer):
     allow_reuse_address = True
 
-print(f"Serving {WEB_ROOT} on port {PORT}...")
-with ReusableTCPServer(("", PORT), MarkdownViewerHandler) as httpd:
-    httpd.serve_forever()
+if __name__ == "__main__":
+    print(f"Serving {WEB_ROOT} on port {PORT}...")
+    with ReusableTCPServer(("", PORT), MarkdownViewerHandler) as httpd:
+        httpd.serve_forever()
