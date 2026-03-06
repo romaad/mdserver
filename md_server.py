@@ -14,19 +14,41 @@ LISTING_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index of {path}</title>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: #24292e; }}
-        h1 {{ font-size: 1.5rem; border-bottom: 1px solid #eaecef; padding-bottom: 0.5em; margin-bottom: 1em; word-break: break-all; }}
-        ul {{ list-style: none; padding: 0; margin: 0; }}
-        li {{ border-bottom: 1px solid #eaecef; }}
-        li:last-child {{ border-bottom: none; }}
-        a {{ text-decoration: none; color: #0366d6; display: block; padding: 12px 5px; font-size: 16px; transition: background 0.2s; }}
-        a:hover {{ text-decoration: none; background-color: #f6f8fa; border-radius: 4px; }}
-        .icon {{ margin-right: 8px; color: #6a737d; }}
-        @media (max-width: 600px) {{
-            body {{ padding: 15px; }}
-            a {{ padding: 15px 5px; font-size: 18px; }} /* Larger touch targets */
-        }}
-        #search {{ width: 100%; padding: 10px; margin-bottom: 20px; font-size: 16px; border: 1px solid #d1d5da; border-radius: 6px; box-sizing: border-box; }}
+        :root {
+            --bg-color: #fff;
+            --text-color: #24292e;
+            --link-color: #0366d6;
+            --hover-bg: #f6f8fa;
+            --border-color: #eaecef;
+            --input-bg: #fff;
+            --input-border: #d1d5da;
+            --icon-color: #6a737d;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0d1117;
+                --text-color: #c9d1d9;
+                --link-color: #58a6ff;
+                --hover-bg: #161b22;
+                --border-color: #30363d;
+                --input-bg: #0d1117;
+                --input-border: #30363d;
+                --icon-color: #8b949e;
+            }
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: var(--text-color); background-color: var(--bg-color); }
+        h1 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5em; margin-bottom: 1em; word-break: break-all; color: var(--text-color); }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { border-bottom: 1px solid var(--border-color); }
+        li:last-child { border-bottom: none; }
+        a { text-decoration: none; color: var(--link-color); display: block; padding: 12px 5px; font-size: 16px; transition: background 0.2s; }
+        a:hover { text-decoration: none; background-color: var(--hover-bg); border-radius: 4px; }
+        .icon { margin-right: 8px; color: var(--icon-color); }
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            a { padding: 15px 5px; font-size: 18px; } /* Larger touch targets */
+        }
+        #search { width: 100%; padding: 10px; margin-bottom: 20px; font-size: 16px; border: 1px solid var(--input-border); border-radius: 6px; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-color); }
     </style>
 </head>
 <body>
@@ -67,14 +89,28 @@ VIEWER_TEMPLATE = """
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }}
-        .header {{ background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; }}
-        .markdown-body {{ box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; }}
-        @media (max-width: 767px) {{ .markdown-body {{ padding: 15px; }} }}
-        #source-view {{ display: none; white-space: pre-wrap; font-family: monospace; background: #fff; padding: 20px; overflow: auto; }}
-        .btn {{ cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }}
-        .btn:hover {{ background-color: #f3f4f6; }}
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #0d1117 !important; color: #c9d1d9 !important; }
+            .markdown-body { color: #c9d1d9 !important; }
+            .header { background: #161b22 !important; border-bottom-color: #30363d !important; }
+            .btn { background: #0d1117 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+            .btn:hover { background-color: #30363d !important; }
+            #source-view { background: #0d1117 !important; color: #c9d1d9 !important; }
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }
+        .header { background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 45px; }
+        @media (max-width: 767px) { .markdown-body { padding: 15px; } }
+        #source-view { display: none; white-space: pre-wrap; font-family: monospace; background: #fff; padding: 20px; overflow: auto; margin: 0 auto; max-width: 980px; }
+        .btn { cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }
+        .btn:hover { background-color: #f3f4f6; }
     </style>
+    <script>
+        // Check for dark mode and swap markdown CSS
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.querySelector('link[rel="stylesheet"]').href = "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css";
+        }
+    </script>
 </head>
 <body>
     <div class="header">
@@ -119,7 +155,7 @@ CODE_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{filename}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
@@ -129,17 +165,51 @@ CODE_TEMPLATE = """
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }}
-        .header {{ background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }}
-        .container {{ padding: 20px; overflow-x: auto; }}
-        pre {{ margin: 0; padding: 10px; border-radius: 6px; background-color: #f6f8fa; }}
-        code {{ font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }}
-        .btn {{ cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }}
-        .btn:hover {{ background-color: #f3f4f6; }}
+        :root {
+            --bg-color: #fff;
+            --text-color: #24292e;
+            --header-bg: #f6f8fa;
+            --header-border: #e1e4e8;
+            --pre-bg: #f6f8fa;
+            --ln-color: #ccc;
+            --ln-border: #ccc;
+            --btn-bg: #fff;
+            --btn-border: #d1d5da;
+            --btn-hover: #f3f4f6;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0d1117;
+                --text-color: #c9d1d9;
+                --header-bg: #161b22;
+                --header-border: #30363d;
+                --pre-bg: #0d1117;
+                --ln-color: #484f58;
+                --ln-border: #30363d;
+                --btn-bg: #21262d;
+                --btn-border: #363b42;
+                --btn-hover: #30363d;
+            }
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-color); }
+        .header { background: var(--header-bg); padding: 10px 20px; border-bottom: 1px solid var(--header-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        .container { padding: 20px; overflow-x: auto; }
+        pre { margin: 0; padding: 10px; border-radius: 6px; background-color: var(--pre-bg); }
+        code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }
+        .btn { cursor: pointer; padding: 5px 12px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 3px; font-size: 14px; color: var(--text-color); text-decoration: none; display: inline-block; margin-left: 5px;}
+        .btn:hover { background-color: var(--btn-hover); }
         /* Line numbers styling */
-        .hljs-ln-numbers {{ -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: #ccc; border-right: 1px solid #ccc; vertical-align: top; padding-right: 5px; }}
-        .hljs-ln-code {{ padding-left: 10px; }}
+        .hljs-ln-numbers { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: var(--ln-color); border-right: 1px solid var(--ln-border); vertical-align: top; padding-right: 5px; }
+        .hljs-ln-code { padding-left: 10px; }
+        
+        /* Wrap lines class */
+        .wrap-lines .hljs-ln-code { white-space: pre-wrap; word-wrap: break-word; }
     </style>
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.getElementById('hljs-theme').href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
+        }
+    </script>
 </head>
 <body>
     <div class="header">
@@ -148,17 +218,35 @@ CODE_TEMPLATE = """
             <span style="margin-left: 10px; font-weight: bold;">{filename}</span>
         </div>
         <div>
+            <button class="btn" onclick="toggleWrap()">Wrap Lines</button>
+            <button class="btn" onclick="copyToClipboard()">Copy</button>
             <a href="?raw=true" class="btn" download>Download</a>
         </div>
     </div>
 
     <div class="container">
-        <pre><code class="language-{ext}">{content}</code></pre>
+        <pre><code id="code-block" class="language-{ext}">{content}</code></pre>
     </div>
 
     <script>
         hljs.highlightAll();
         hljs.initLineNumbersOnLoad();
+
+        function toggleWrap() {
+            document.querySelector('table').classList.toggle('wrap-lines');
+        }
+
+        function copyToClipboard() {
+            const code = document.getElementById('code-block').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+                const originalText = btn.innerText;
+                btn.innerText = "Copied!";
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
     </script>
 </body>
 </html>
