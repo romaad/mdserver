@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Check for dark mode and swap markdown CSS
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.querySelector('link[href*="github-markdown-light"]').href = "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-dark.min.css";
+        }
+    </script>
+</head>
+<body class="markdown-view">
+    <div class="header">
+        <div>
+            <a href="/" class="btn">⬅ Back</a>
+            <span style="margin-left: 10px; font-weight: bold;">${filename}</span>
+        </div>
+        <div>
+            <button class="btn" onclick="toggleView()">Source / Rendered</button>
+            <a href="?raw=true" class="btn" download>Download</a>
+        </div>
+    </div>
+
+    <div id="content" class="markdown-body"></div>
+    <pre id="source-view">${raw_content}</pre>
+
+    <script>
+        const rawContent = document.getElementById('source-view').textContent;
+        document.getElementById('content').innerHTML = marked.parse(rawContent);
+
+        function toggleView() {
+            const content = document.getElementById('content');
+            const source = document.getElementById('source-view');
+            if (source.style.display === 'none') {
+                source.style.display = 'block';
+                content.style.display = 'none';
+            } else {
+                source.style.display = 'none';
+                content.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
