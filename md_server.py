@@ -177,8 +177,8 @@ CODE_TEMPLATE = """
             --btn-border: #d1d5da;
             --btn-hover: #f3f4f6;
         }
-        @media (prefers-color-scheme: dark) {
-            :root {
+        @media (prefers-color-scheme: dark) {{
+            :root {{
                 --bg-color: #0d1117;
                 --text-color: #c9d1d9;
                 --header-bg: #161b22;
@@ -189,26 +189,26 @@ CODE_TEMPLATE = """
                 --btn-bg: #21262d;
                 --btn-border: #363b42;
                 --btn-hover: #30363d;
-            }
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-color); }
-        .header { background: var(--header-bg); padding: 10px 20px; border-bottom: 1px solid var(--header-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
-        .container { padding: 20px; overflow-x: auto; }
-        pre { margin: 0; padding: 10px; border-radius: 6px; background-color: var(--pre-bg); }
-        code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }
-        .btn { cursor: pointer; padding: 5px 12px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 3px; font-size: 14px; color: var(--text-color); text-decoration: none; display: inline-block; margin-left: 5px;}
-        .btn:hover { background-color: var(--btn-hover); }
+            }}
+        }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-color); }}
+        .header {{ background: var(--header-bg); padding: 10px 20px; border-bottom: 1px solid var(--header-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }}
+        .container {{ padding: 20px; overflow-x: auto; }}
+        pre {{ margin: 0; padding: 10px; border-radius: 6px; background-color: var(--pre-bg); }}
+        code {{ font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }}
+        .btn {{ cursor: pointer; padding: 5px 12px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 3px; font-size: 14px; color: var(--text-color); text-decoration: none; display: inline-block; margin-left: 5px;}}
+        .btn:hover {{ background-color: var(--btn-hover); }}
         /* Line numbers styling */
-        .hljs-ln-numbers { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: var(--ln-color); border-right: 1px solid var(--ln-border); vertical-align: top; padding-right: 5px; }
-        .hljs-ln-code { padding-left: 10px; }
+        .hljs-ln-numbers {{ -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: var(--ln-color); border-right: 1px solid var(--ln-border); vertical-align: top; padding-right: 5px; }}
+        .hljs-ln-code {{ padding-left: 10px; }}
         
         /* Wrap lines class */
-        .wrap-lines .hljs-ln-code { white-space: pre-wrap; word-wrap: break-word; }
+        .wrap-lines .hljs-ln-code {{ white-space: pre-wrap; word-wrap: break-word; }}
     </style>
     <script>
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {{
             document.getElementById('hljs-theme').href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
-        }
+        }}
     </script>
 </head>
 <body>
@@ -232,21 +232,21 @@ CODE_TEMPLATE = """
         hljs.highlightAll();
         hljs.initLineNumbersOnLoad();
 
-        function toggleWrap() {
+        function toggleWrap() {{
             document.querySelector('table').classList.toggle('wrap-lines');
-        }
+        }}
 
-        function copyToClipboard() {
+        function copyToClipboard() {{
             const code = document.getElementById('code-block').innerText;
-            navigator.clipboard.writeText(code).then(() => {
+            navigator.clipboard.writeText(code).then(() => {{
                 const btn = document.querySelector('button[onclick="copyToClipboard()"]');
                 const originalText = btn.innerText;
                 btn.innerText = "Copied!";
-                setTimeout(() => { btn.innerText = originalText; }, 2000);
-            }).catch(err => {
+                setTimeout(() => {{ btn.innerText = originalText; }}, 2000);
+            }}).catch(err => {{
                 console.error('Failed to copy: ', err);
-            });
-        }
+            }});
+        }}
     </script>
 </body>
 </html>
