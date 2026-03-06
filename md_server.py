@@ -33,7 +33,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             if os.path.exists(static_path) and os.path.isfile(static_path):
                 self.send_response(200)
                 if static_path.endswith(".css"):
-                    self.send_header("Content-type", "text/css")
+                    self.send_header("Content-type", "text/css; charset=utf-8")
                 self.end_headers()
                 with open(static_path, "rb") as f:
                     self.wfile.write(f.read())
@@ -50,7 +50,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
         # Check if it's a directory
         if os.path.isdir(full_path):
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
+            self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
             
             items = []
@@ -78,7 +78,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
         if full_path.endswith(".md") and "raw=true" not in self.path:
             if os.path.exists(full_path):
                 self.send_response(200)
-                self.send_header("Content-type", "text/html")
+                self.send_header("Content-type", "text/html; charset=utf-8")
                 self.end_headers()
                 
                 with open(full_path, "r", encoding="utf-8") as f:
@@ -106,7 +106,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
         if ext in code_exts and "raw=true" not in self.path:
              if os.path.exists(full_path):
                 self.send_response(200)
-                self.send_header("Content-type", "text/html")
+                self.send_header("Content-type", "text/html; charset=utf-8")
                 self.end_headers()
                 
                 with open(full_path, "r", encoding="utf-8") as f:
