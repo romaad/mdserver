@@ -111,6 +111,59 @@ VIEWER_TEMPLATE = """
 </html>
 """
 
+# HTML template for code viewer
+CODE_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{filename}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 0; margin: 0; }}
+        .header {{ background: #f6f8fa; padding: 10px 20px; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }}
+        .container {{ padding: 20px; overflow-x: auto; }}
+        pre {{ margin: 0; padding: 10px; border-radius: 6px; background-color: #f6f8fa; }}
+        code {{ font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 14px; }}
+        .btn {{ cursor: pointer; padding: 5px 12px; background: #fff; border: 1px solid #d1d5da; border-radius: 3px; font-size: 14px; color: #24292e; text-decoration: none; }}
+        .btn:hover {{ background-color: #f3f4f6; }}
+        /* Line numbers styling */
+        .hljs-ln-numbers {{ -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; text-align: right; color: #ccc; border-right: 1px solid #ccc; vertical-align: top; padding-right: 5px; }}
+        .hljs-ln-code {{ padding-left: 10px; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <a href="/" class="btn">⬅ Back</a>
+            <span style="margin-left: 10px; font-weight: bold;">{filename}</span>
+        </div>
+        <div>
+            <a href="?raw=true" class="btn" download>Download</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <pre><code class="language-{ext}">{content}</code></pre>
+    </div>
+
+    <script>
+        hljs.highlightAll();
+        hljs.initLineNumbersOnLoad();
+    </script>
+</body>
+</html>
+"""
+
 class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         # Decode the URL path
@@ -173,6 +226,35 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(VIEWER_TEMPLATE.format(
                     filename=os.path.basename(full_path),
                     raw_content=safe_content
+                ).encode("utf-8"))
+                return
+
+        # Check if it's a code file and user didn't ask for raw
+        code_exts = {
+            ".py": "python", ".js": "javascript", ".css": "css", ".html": "xml", 
+            ".json": "json", ".yml": "yaml", ".yaml": "yaml", ".sh": "bash", 
+            ".conf": "bash", ".xml": "xml", ".c": "c", ".cpp": "cpp", ".h": "c",
+            ".java": "java", ".go": "go", ".rs": "rust", ".ts": "typescript",
+            ".tsx": "typescript", ".jsx": "javascript", ".sql": "sql", ".ini": "ini",
+            ".md": "markdown" # Fallback if md handler missed it? No, md is above.
+        }
+        _, ext = os.path.splitext(full_path)
+        if ext in code_exts and "raw=true" not in self.path:
+             if os.path.exists(full_path):
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                
+                with open(full_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                import html
+                safe_content = html.escape(content)
+                
+                self.wfile.write(CODE_TEMPLATE.format(
+                    filename=os.path.basename(full_path),
+                    ext=code_exts[ext],
+                    content=safe_content
                 ).encode("utf-8"))
                 return
 
