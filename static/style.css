@@ -228,6 +228,11 @@ code {
     font-size: 14px;
 }
 
+.hljs-ln {
+    border-collapse: collapse;
+    width: 100%;
+}
+
 .hljs-ln-numbers {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -239,11 +244,12 @@ code {
     color: var(--ln-color);
     border-right: 1px solid var(--ln-border);
     vertical-align: top;
-    padding-right: 5px;
+    padding-right: 4px !important;
+    min-width: 25px;
 }
 
 .hljs-ln-code {
-    padding-left: 10px;
+    padding-left: 6px !important;
 }
 
 .wrap-lines .hljs-ln-code {
