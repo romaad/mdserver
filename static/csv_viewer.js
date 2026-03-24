@@ -9,6 +9,9 @@
 
     container.innerHTML = "<p style='padding: 20px;'>Parsing CSV data...</p>";
 
+    let sortAscending = true;
+    let currentSortColumn = null;
+
     try {
         const rawContent = sourceView.textContent.trim();
         const parsedData = parseCSV(rawContent);
@@ -36,8 +39,6 @@
         return { data: data, meta: { fields: headers } };
     }
 
-    let sortAscending = true;
-    let currentSortColumn = null;
 
     function renderTable(data, fields) {
         if (!fields || fields.length === 0) {
