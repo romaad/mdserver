@@ -114,7 +114,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             items.append(f"<li>Error listing directory: {e}</li>")
         
-        self.wfile.write(LISTING_TEMPLATE.substitute(path=url_path, items="\n".join(items)).encode("utf-8"))
+        self.wfile.write(LISTING_TEMPLATE.safe_substitute(path=url_path, items="\n".join(items)).encode("utf-8"))
 
     def serve_file(self, full_path, url_path):
         # Check if raw requested
@@ -199,7 +199,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             
             safe_content = html.escape(content)
             
-            self.wfile.write(VIEWER_TEMPLATE.substitute(
+            self.wfile.write(VIEWER_TEMPLATE.safe_substitute(
                 filename=os.path.basename(full_path),
                 raw_content=safe_content
             ).encode("utf-8"))
@@ -215,7 +215,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             
             safe_content = html.escape(content)
             
-            self.wfile.write(CSV_TEMPLATE.substitute(
+            self.wfile.write(CSV_TEMPLATE.safe_substitute(
                 filename=os.path.basename(full_path),
                 raw_content=safe_content
             ).encode("utf-8"))
@@ -231,7 +231,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             
             safe_content = html.escape(content)
             
-            self.wfile.write(CODE_TEMPLATE.substitute(
+            self.wfile.write(CODE_TEMPLATE.safe_substitute(
                 filename=os.path.basename(full_path),
                 ext=lang,
                 content=safe_content
