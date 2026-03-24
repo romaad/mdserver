@@ -78,6 +78,11 @@
         // Expose parsed data globally for sorting
         window.__csvData = data;
         window.__csvFields = fields;
+        
+        if (window.GenericChartBuilder && !window._chartInitialized) {
+            window.GenericChartBuilder.init('chart-view', data, fields);
+            window._chartInitialized = true;
+        }
     }
 
     window.sortTable = function(columnName) {
@@ -125,3 +130,21 @@
         }
     };
 })();
+    window.switchView = function(viewName) {
+        const content = document.getElementById('content');
+        const source = document.getElementById('source-view');
+        const chart = document.getElementById('chart-view');
+        
+        content.style.display = viewName === 'table' ? 'block' : 'none';
+        chart.style.display = viewName === 'chart' ? 'block' : 'none';
+        source.style.display = viewName === 'source' ? 'block' : 'none';
+    };
+
+    // Replace old toggleView with switchView logic for backwards compat
+    window.toggleView = function() {
+        if (document.getElementById('content').style.display !== 'none') {
+            window.switchView('source');
+        } else {
+            window.switchView('table');
+        }
+    };

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${filename}</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .csv-container {
             max-width: 100%;
@@ -52,23 +53,33 @@
             }
         }
         #source-view { display: none; margin: 20px; white-space: pre-wrap; font-family: monospace; }
+        .view-btn-group { display: flex; gap: 5px; }
     </style>
 </head>
 <body class="csv-view">
-    <div class="header" style="display: flex; justify-content: space-between; padding: 10px 20px; background: var(--bg-color); border-bottom: 1px solid var(--border-color);">
+    <div class="header" style="display: flex; justify-content: space-between; padding: 10px 20px; background: var(--bg-color); border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
         <div>
             <a href="${parent_dir}" class="btn" style="text-decoration: none; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">⬅ Back</a>
             <span style="margin-left: 10px; font-weight: bold; color: var(--text-color);">${filename}</span>
         </div>
-        <div>
-            <button class="btn" onclick="window.toggleView()" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; margin-right: 5px;">Source / Table</button>
-            <a href="?raw=true" class="btn" download style="text-decoration: none; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">Download</a>
+        <div class="view-btn-group">
+            <button class="btn" onclick="window.switchView('table')" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">Table</button>
+            <button class="btn" onclick="window.switchView('chart')" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">Chart</button>
+            <button class="btn" onclick="window.switchView('source')" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">Source</button>
+            <a href="?raw=true" class="btn" download style="text-decoration: none; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; margin-left: 5px;">Download</a>
         </div>
     </div>
 
+    <!-- Container for Table View -->
     <div class="csv-container" id="content" style="padding:20px;">Loading CSV data...</div>
+    
+    <!-- Container for Chart View -->
+    <div class="csv-container" id="chart-view" style="display:none; padding:20px;"></div>
+
+    <!-- Container for Source View -->
     <pre id="source-view">${raw_content}</pre>
 
-    <script src="/static/csv_viewer.js?v=4"></script>
+    <script src="/static/chart_builder.js?v=1"></script>
+    <script src="/static/csv_viewer.js?v=5"></script>
 </body>
 </html>
