@@ -12,19 +12,19 @@ window.GenericChartBuilder = {
 
         // Build UI
         let html = `
-            <div class="chart-controls" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+            <div class="chart-controls" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start;">
                 <div>
                     <label style="display:block; margin-bottom:5px; font-weight:600;">X-Axis</label>
-                    <select id="cb-x-axis" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);"></select>
+                    <select id="cb-x-axis" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); min-width: 150px;"></select>
                 </div>
                 <div>
-                    <label style="display:block; margin-bottom:5px; font-weight:600;">Y-Axis</label>
-                    <select id="cb-y-axis" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);"></select>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Y-Axis (Multi)</label>
+                    <select id="cb-y-axis" multiple size="4" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); min-width: 150px;"></select>
+                    <div style="font-size: 11px; color: #888; margin-top: 3px;">Ctrl/Cmd+Click (or tap) to select multiple</div>
                 </div>
                 <div>
-                    <label style="display:block; margin-bottom:5px; font-weight:600;">Breakdown (opt)</label>
-                    <select id="cb-breakdown" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-                        <option value="">-- None --</option>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Breakdown (Multi)</label>
+                    <select id="cb-breakdown" multiple size="4" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); min-width: 150px;">
                     </select>
                 </div>
                 <div>
@@ -34,7 +34,7 @@ window.GenericChartBuilder = {
                         <option value="bar">Bar Chart</option>
                     </select>
                 </div>
-                <div>
+                <div style="align-self: flex-end; margin-bottom: 16px;">
                     <button class="btn" onclick="window.GenericChartBuilder.render()" style="padding: 7px 15px; cursor: pointer; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color); font-weight:bold;">Draw Chart</button>
                 </div>
             </div>
@@ -56,16 +56,30 @@ window.GenericChartBuilder = {
 
         // Smart defaults if possible
         if (fields.length >= 2) {
-            // usually the first column is a date/time/label
             xSel.selectedIndex = 0;
-            // and the next numerical column is Y
-            ySel.selectedIndex = 1;
+            ySel.options[1].selected = true;
+        } else if (fields.length === 1) {
+            xSel.selectedIndex = 0;
+            ySel.options[0].selected = true;
         }
 
         // Auto-render initial
         if (typeof Chart !== 'undefined') {
             this.render();
         }
+    },
+
+    getSelectValues: function(select) {
+        let result = [];
+        let options = select && select.options;
+        let opt;
+        for (let i=0, iLen=options.length; i<iLen; i++) {
+            opt = options[i];
+            if (opt.selected && opt.value) {
+                result.push(opt.value);
+            }
+        }
+        return result;
     },
 
     render: function() {
@@ -75,11 +89,14 @@ window.GenericChartBuilder = {
         }
 
         const xAxis = document.getElementById('cb-x-axis').value;
-        const yAxis = document.getElementById('cb-y-axis').value;
-        const breakdown = document.getElementById('cb-breakdown').value;
+        const yAxes = this.getSelectValues(document.getElementById('cb-y-axis'));
+        const breakdowns = this.getSelectValues(document.getElementById('cb-breakdown'));
         const chartType = document.getElementById('cb-type').value;
 
-        if (!xAxis || !yAxis) return;
+        if (!xAxis || yAxes.length === 0) {
+            alert("Please select an X-Axis and at least one Y-Axis.");
+            return;
+        }
 
         const ctx = document.getElementById('cb-canvas').getContext('2d');
         
@@ -106,56 +123,72 @@ window.GenericChartBuilder = {
             'rgba(75, 192, 192, 0.7)',  // Green
             'rgba(255, 206, 86, 0.7)',  // Yellow
             'rgba(153, 102, 255, 0.7)', // Purple
-            'rgba(255, 159, 64, 0.7)'   // Orange
+            'rgba(255, 159, 64, 0.7)',  // Orange
+            'rgba(199, 199, 199, 0.7)', // Grey
+            'rgba(83, 102, 255, 0.7)',  // Indigo
+            'rgba(255, 99, 255, 0.7)'   // Pink
         ];
         const borderColors = colors.map(c => c.replace('0.7', '1'));
 
-        if (!breakdown) {
-            // No breakdown, single dataset aggregating by X
-            let dataPoints = labels.map(l => {
-                let rows = this.data.filter(r => r[xAxis] === l);
-                // Try summing numeric values, otherwise count them if non-numeric?
-                // Assuming numeric for standard metrics:
-                let sum = rows.reduce((acc, r) => acc + (parseFloat(r[yAxis]) || 0), 0);
-                return sum;
-            });
+        let colorIdx = 0;
 
-            datasets.push({
-                label: yAxis,
-                data: dataPoints,
-                backgroundColor: colors[0],
-                borderColor: borderColors[0],
-                borderWidth: 2,
-                fill: chartType === 'line' ? false : true,
-                tension: 0.1
-            });
-        } else {
-            // Group by breakdown field
+        // Determine all unique breakdown combinations present in the data
+        let groupKeys = ["No Breakdown"];
+        if (breakdowns.length > 0) {
             const bSet = new Set();
-            this.data.forEach(row => { 
-                if (row[breakdown] !== undefined && row[breakdown] !== '') {
-                    bSet.add(row[breakdown]);
+            this.data.forEach(row => {
+                let keyParts = [];
+                let hasValidBreakdown = false;
+                breakdowns.forEach(b => {
+                    if (row[b] !== undefined && row[b] !== '') {
+                        keyParts.push(row[b]);
+                        hasValidBreakdown = true;
+                    } else {
+                        keyParts.push("Unknown");
+                    }
+                });
+                if (hasValidBreakdown) {
+                    bSet.add(keyParts.join(" | "));
                 }
             });
-            const bGroups = Array.from(bSet).sort();
+            groupKeys = Array.from(bSet).sort();
+        }
 
-            bGroups.forEach((group, idx) => {
+        yAxes.forEach(yAxis => {
+            groupKeys.forEach(group => {
                 let dataPoints = labels.map(l => {
-                    let rows = this.data.filter(r => r[xAxis] === l && r[breakdown] === group);
+                    let rows = this.data.filter(r => {
+                        let matchX = r[xAxis] === l;
+                        if (!matchX) return false;
+                        
+                        if (breakdowns.length > 0) {
+                            let keyParts = breakdowns.map(b => (r[b] !== undefined && r[b] !== '') ? r[b] : "Unknown");
+                            return keyParts.join(" | ") === group;
+                        }
+                        return true;
+                    });
                     return rows.reduce((acc, r) => acc + (parseFloat(r[yAxis]) || 0), 0);
                 });
 
+                let label = yAxis;
+                if (breakdowns.length > 0) {
+                    label = `${group} (${yAxis})`;
+                } else if (yAxes.length > 1) {
+                    label = yAxis;
+                }
+
                 datasets.push({
-                    label: `${group} (${yAxis})`,
+                    label: label,
                     data: dataPoints,
-                    backgroundColor: colors[idx % colors.length],
-                    borderColor: borderColors[idx % borderColors.length],
+                    backgroundColor: colors[colorIdx % colors.length],
+                    borderColor: borderColors[colorIdx % borderColors.length],
                     borderWidth: 2,
                     fill: chartType === 'line' ? false : true,
                     tension: 0.1
                 });
+                colorIdx++;
             });
-        }
+        });
 
         Chart.defaults.color = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#d4d4d4' : '#666';
 
