@@ -75,7 +75,13 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
         static_path = os.path.join(STATIC_DIR, static_file)
         if os.path.exists(static_path) and os.path.isfile(static_path):
             self.send_response(200)
-            if static_path.endswith(".css"):
+            import mimetypes
+            mime, _ = mimetypes.guess_type(static_path)
+            if mime:
+                self.send_header("Content-type", f"{mime}; charset=utf-8")
+            elif static_path.endswith(".js"):
+                self.send_header("Content-type", "application/javascript; charset=utf-8")
+            elif static_path.endswith(".css"):
                 self.send_header("Content-type", "text/css; charset=utf-8")
             self.end_headers()
             with open(static_path, "rb") as f:
@@ -124,12 +130,12 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
 
         # Markdown Viewer
         if ext in ['.md', '.markdown'] and not is_raw:
-            self.render_viewer(full_path)
+            self.render_viewer(full_path, url_path)
             return
 
         # CSV Viewer
         if ext == '.csv' and not is_raw:
-            self.render_csv(full_path)
+            self.render_csv(full_path, url_path)
             return
 
         # Code Viewer
@@ -163,7 +169,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
                     is_text_file = False
 
         if is_text_file and not is_raw:
-            self.render_code(full_path, lang)
+            self.render_code(full_path, lang, url_path)
             return
 
         # Default raw serve
@@ -188,7 +194,7 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
         finally:
             os.chdir(current_dir)
 
-    def render_viewer(self, full_path):
+    def render_viewer(self, full_path, url_path):
         if os.path.exists(full_path):
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
@@ -198,13 +204,17 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
                 content = f.read()
             
             safe_content = html.escape(content)
+            
+            parent_dir = os.path.dirname(url_path.rstrip('/'))
+            if not parent_dir: parent_dir = '/'
             
             self.wfile.write(VIEWER_TEMPLATE.safe_substitute(
                 filename=os.path.basename(full_path),
-                raw_content=safe_content
+                raw_content=safe_content,
+                parent_dir=parent_dir
             ).encode("utf-8"))
 
-    def render_csv(self, full_path):
+    def render_csv(self, full_path, url_path):
         if os.path.exists(full_path):
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
@@ -215,12 +225,16 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             
             safe_content = html.escape(content)
             
+            parent_dir = os.path.dirname(url_path.rstrip('/'))
+            if not parent_dir: parent_dir = '/'
+            
             self.wfile.write(CSV_TEMPLATE.safe_substitute(
                 filename=os.path.basename(full_path),
-                raw_content=safe_content
+                raw_content=safe_content,
+                parent_dir=parent_dir
             ).encode("utf-8"))
 
-    def render_code(self, full_path, lang):
+    def render_code(self, full_path, lang, url_path):
          if os.path.exists(full_path):
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
@@ -231,10 +245,14 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             
             safe_content = html.escape(content)
             
+            parent_dir = os.path.dirname(url_path.rstrip('/'))
+            if not parent_dir: parent_dir = '/'
+            
             self.wfile.write(CODE_TEMPLATE.safe_substitute(
                 filename=os.path.basename(full_path),
                 ext=lang,
-                content=safe_content
+                content=safe_content,
+                parent_dir=parent_dir
             ).encode("utf-8"))
 
 class ReusableTCPServer(socketserver.TCPServer):
