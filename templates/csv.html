@@ -62,7 +62,7 @@
             <span style="margin-left: 10px; font-weight: bold; color: var(--text-color);">${filename}</span>
         </div>
         <div>
-            <button class="btn" onclick="toggleView()" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; margin-right: 5px;">Source / Table</button>
+            <button class="btn" onclick="window.toggleView()" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; margin-right: 5px;">Source / Table</button>
             <a href="?raw=true" class="btn" download style="text-decoration: none; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">Download</a>
         </div>
     </div>
@@ -70,98 +70,6 @@
     <div class="csv-container" id="content"></div>
     <pre id="source-view">${raw_content}</pre>
 
-    <script>
-        const rawContent = document.getElementById('source-view').textContent;
-        const container = document.getElementById('content');
-        
-        // Parse CSV using PapaParse
-        const parsedData = Papa.parse(rawContent, {
-            header: true,
-            skipEmptyLines: true
-        });
-        
-        if (parsedData.errors.length > 0 && parsedData.data.length === 0) {
-            container.innerHTML = '<p style="color:red; padding:20px;">Error parsing CSV data.</p>';
-        } else {
-            renderTable(parsedData.data, parsedData.meta.fields);
-        }
-        
-        let sortAscending = true;
-        let currentSortColumn = null;
-
-        function renderTable(data, fields) {
-            if (!fields || fields.length === 0) {
-                container.innerHTML = '<p style="padding:20px;">Empty CSV or no headers found.</p>';
-                return;
-            }
-            
-            let tableHTML = '<table class="csv-table"><thead><tr>';
-            fields.forEach((field, i) => {
-                let sortIndicator = '';
-                if (currentSortColumn === field) {
-                    sortIndicator = sortAscending ? ' 🔼' : ' 🔽';
-                }
-                tableHTML += `<th onclick="sortTable('${field.replace(/'/g, "\\'")}', ${i})">${field}${sortIndicator}</th>`;
-            });
-            tableHTML += '</tr></thead><tbody>';
-            
-            data.forEach(row => {
-                tableHTML += '<tr>';
-                fields.forEach(field => {
-                    // Safe injection
-                    const val = row[field] !== undefined ? row[field] : '';
-                    tableHTML += `<td>${val}</td>`;
-                });
-                tableHTML += '</tr>';
-            });
-            
-            tableHTML += '</tbody></table>';
-            container.innerHTML = tableHTML;
-        }
-
-        function sortTable(columnName, index) {
-            if (currentSortColumn === columnName) {
-                sortAscending = !sortAscending;
-            } else {
-                currentSortColumn = columnName;
-                sortAscending = true;
-            }
-            
-            parsedData.data.sort((a, b) => {
-                let valA = a[columnName] || '';
-                let valB = b[columnName] || '';
-                
-                // Try numeric sort first
-                let numA = parseFloat(valA);
-                let numB = parseFloat(valB);
-                
-                if (!isNaN(numA) && !isNaN(numB)) {
-                    return sortAscending ? numA - numB : numB - numA;
-                }
-                
-                // Fallback to string sort
-                valA = valA.toString().toLowerCase();
-                valB = valB.toString().toLowerCase();
-                
-                if (valA < valB) return sortAscending ? -1 : 1;
-                if (valA > valB) return sortAscending ? 1 : -1;
-                return 0;
-            });
-            
-            renderTable(parsedData.data, parsedData.meta.fields);
-        }
-
-        function toggleView() {
-            const content = document.getElementById('content');
-            const source = document.getElementById('source-view');
-            if (source.style.display === 'block') {
-                source.style.display = 'none';
-                content.style.display = 'block';
-            } else {
-                source.style.display = 'block';
-                content.style.display = 'none';
-            }
-        }
-    </script>
+    <script src="/static/csv_viewer.js"></script>
 </body>
 </html>
