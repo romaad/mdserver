@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${filename}</title>
     <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         .csv-container {
             max-width: 100%;
@@ -67,9 +66,9 @@
         </div>
     </div>
 
-    <div class="csv-container" id="content"></div>
+    <div class="csv-container" id="content" style="padding:20px;">Loading CSV data...</div>
     <pre id="source-view">${raw_content}</pre>
 
-    <script src="/static/csv_viewer.js?v=2"></script>
+    <script src="/static/csv_viewer.js?v=3"></script>
 </body>
 </html>

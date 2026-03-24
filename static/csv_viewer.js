@@ -3,32 +3,39 @@
     const container = document.getElementById('content');
     
     if (!sourceView || !container) {
-        console.error("CSV Viewer: Could not find #source-view or #content elements.");
+        console.error("CSV Viewer: Could not find elements.");
         return;
     }
 
-    if (typeof Papa === 'undefined') {
-        container.innerHTML = '<p style="color:red; padding:20px;">Error: PapaParse library not loaded. Check internet connection or ad blockers.</p>';
-        console.error("PapaParse is not defined.");
-        return;
-    }
+    container.innerHTML = "<p style='padding: 20px;'>Parsing CSV data...</p>";
 
-    // Use textContent to get the browser-unescaped CSV text
-    const rawContent = sourceView.textContent.trim();
-    
-    // Parse CSV using PapaParse
-    const parsedData = Papa.parse(rawContent, {
-        header: true,
-        skipEmptyLines: true
-    });
-    
-    if (parsedData.errors.length > 0 && parsedData.data.length === 0) {
-        container.innerHTML = '<p style="color:red; padding:20px;">Error parsing CSV data.</p>';
-        console.error("PapaParse errors:", parsedData.errors);
-    } else {
+    try {
+        const rawContent = sourceView.textContent.trim();
+        const parsedData = parseCSV(rawContent);
         renderTable(parsedData.data, parsedData.meta.fields);
+    } catch (err) {
+        container.innerHTML = "<p style='color:red; padding: 20px;'>Error: " + err.message + "</p>";
     }
-    
+
+    function parseCSV(str) {
+        const lines = str.trim().split('\n');
+        if (lines.length === 0) return { data: [], meta: { fields: [] } };
+        
+        const headers = lines[0].split(',').map(h => h.trim());
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            // Basic split (assumes no commas inside quotes for this simple energy tracker)
+            const values = lines[i].split(',');
+            const row = {};
+            headers.forEach((h, index) => {
+                row[h] = values[index] ? values[index].trim() : '';
+            });
+            data.push(row);
+        }
+        return { data: data, meta: { fields: headers } };
+    }
+
     let sortAscending = true;
     let currentSortColumn = null;
 
@@ -44,7 +51,6 @@
             if (currentSortColumn === field) {
                 sortIndicator = sortAscending ? ' 🔼' : ' 🔽';
             }
-            // Escape field for use in HTML string
             const safeField = field.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             tableHTML += `<th onclick="window.sortTable('${safeField}')">${field}${sortIndicator}</th>`;
         });
@@ -53,7 +59,6 @@
         data.forEach(row => {
             tableHTML += '<tr>';
             fields.forEach(field => {
-                // Escape value for use in HTML
                 const val = row[field] !== undefined ? row[field] : '';
                 const safeVal = String(val)
                     .replace(/&/g, "&amp;")
@@ -68,9 +73,12 @@
         
         tableHTML += '</tbody></table>';
         container.innerHTML = tableHTML;
+        
+        // Expose parsed data globally for sorting
+        window.__csvData = data;
+        window.__csvFields = fields;
     }
 
-    // Expose functions to window for inline onclick handlers
     window.sortTable = function(columnName) {
         if (currentSortColumn === columnName) {
             sortAscending = !sortAscending;
@@ -79,11 +87,13 @@
             sortAscending = true;
         }
         
-        parsedData.data.sort((a, b) => {
+        const data = window.__csvData || [];
+        const fields = window.__csvFields || [];
+        
+        data.sort((a, b) => {
             let valA = a[columnName] || '';
             let valB = b[columnName] || '';
             
-            // Try numeric sort first
             let numA = parseFloat(valA);
             let numB = parseFloat(valB);
             
@@ -91,7 +101,6 @@
                 return sortAscending ? numA - numB : numB - numA;
             }
             
-            // Fallback to string sort
             valA = valA.toString().toLowerCase();
             valB = valB.toString().toLowerCase();
             
@@ -100,13 +109,12 @@
             return 0;
         });
         
-        renderTable(parsedData.data, parsedData.meta.fields);
+        renderTable(data, fields);
     };
 
     window.toggleView = function() {
         const content = document.getElementById('content');
         const source = document.getElementById('source-view');
-        // The CSS initially hides source-view via display:none
         if (window.getComputedStyle(source).display === 'none') {
             source.style.display = 'block';
             content.style.display = 'none';
