@@ -1,8 +1,17 @@
-document.addEventListener("DOMContentLoaded", function() {
+(function() {
     const sourceView = document.getElementById('source-view');
     const container = document.getElementById('content');
     
-    if (!sourceView || !container) return;
+    if (!sourceView || !container) {
+        console.error("CSV Viewer: Could not find #source-view or #content elements.");
+        return;
+    }
+
+    if (typeof Papa === 'undefined') {
+        container.innerHTML = '<p style="color:red; padding:20px;">Error: PapaParse library not loaded. Check internet connection or ad blockers.</p>';
+        console.error("PapaParse is not defined.");
+        return;
+    }
 
     // Use textContent to get the browser-unescaped CSV text
     const rawContent = sourceView.textContent.trim();
@@ -106,4 +115,4 @@ document.addEventListener("DOMContentLoaded", function() {
             content.style.display = 'block';
         }
     };
-});
+})();
