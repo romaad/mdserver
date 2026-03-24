@@ -33,6 +33,7 @@ def load_template(name):
 LISTING_TEMPLATE = load_template("listing.html")
 VIEWER_TEMPLATE = load_template("viewer.html")
 CODE_TEMPLATE = load_template("code.html")
+CSV_TEMPLATE = load_template("csv.html")
 
 class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -126,6 +127,11 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             self.render_viewer(full_path)
             return
 
+        # CSV Viewer
+        if ext == '.csv' and not is_raw:
+            self.render_csv(full_path)
+            return
+
         # Code Viewer
         code_exts = {
             ".py": "python", ".js": "javascript", ".css": "css", ".html": "xml", 
@@ -194,6 +200,22 @@ class MarkdownViewerHandler(http.server.SimpleHTTPRequestHandler):
             safe_content = html.escape(content)
             
             self.wfile.write(VIEWER_TEMPLATE.substitute(
+                filename=os.path.basename(full_path),
+                raw_content=safe_content
+            ).encode("utf-8"))
+
+    def render_csv(self, full_path):
+        if os.path.exists(full_path):
+            self.send_response(200)
+            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.end_headers()
+            
+            with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read()
+            
+            safe_content = html.escape(content)
+            
+            self.wfile.write(CSV_TEMPLATE.substitute(
                 filename=os.path.basename(full_path),
                 raw_content=safe_content
             ).encode("utf-8"))

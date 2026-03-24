@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        .csv-container {
+            max-width: 100%;
+            overflow-x: auto;
+            margin: 20px;
+            background: var(--bg-color, #fff);
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        table.csv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            color: var(--text-color, #333);
+        }
+        table.csv-table th, table.csv-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color, #eaecef);
+            text-align: left;
+        }
+        table.csv-table th {
+            background-color: var(--table-header-bg, #f6f8fa);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+        }
+        table.csv-table th:hover {
+            background-color: var(--border-color, #eaecef);
+        }
+        table.csv-table tr:nth-child(even) {
+            background-color: var(--table-alt-row, #fcfcfc);
+        }
+        table.csv-table tr:hover {
+            background-color: var(--table-hover, #f5f5f5);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1e1e1e;
+                --text-color: #d4d4d4;
+                --border-color: #3e3e42;
+                --table-header-bg: #2d2d30;
+                --table-alt-row: #252526;
+                --table-hover: #333337;
+            }
+        }
+        #source-view { display: none; margin: 20px; white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body class="csv-view">
+    <div class="header" style="display: flex; justify-content: space-between; padding: 10px 20px; background: var(--bg-color); border-bottom: 1px solid var(--border-color);">
+        <div>
+            <a href="/" class="btn" style="text-decoration: none; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">⬅ Back</a>
+            <span style="margin-left: 10px; font-weight: bold; color: var(--text-color);">${filename}</span>
+        </div>
+        <div>
+            <button class="btn" onclick="toggleView()" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; margin-right: 5px;">Source / Table</button>
+            <a href="?raw=true" class="btn" download style="text-decoration: none; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">Download</a>
+        </div>
+    </div>
+
+    <div class="csv-container" id="content"></div>
+    <pre id="source-view">${raw_content}</pre>
+
+    <script>
+        const rawContent = document.getElementById('source-view').textContent;
+        const container = document.getElementById('content');
+        
+        // Parse CSV using PapaParse
+        const parsedData = Papa.parse(rawContent, {
+            header: true,
+            skipEmptyLines: true
+        });
+        
+        if (parsedData.errors.length > 0 && parsedData.data.length === 0) {
+            container.innerHTML = '<p style="color:red; padding:20px;">Error parsing CSV data.</p>';
+        } else {
+            renderTable(parsedData.data, parsedData.meta.fields);
+        }
+        
+        let sortAscending = true;
+        let currentSortColumn = null;
+
+        function renderTable(data, fields) {
+            if (!fields || fields.length === 0) {
+                container.innerHTML = '<p style="padding:20px;">Empty CSV or no headers found.</p>';
+                return;
+            }
+            
+            let tableHTML = '<table class="csv-table"><thead><tr>';
+            fields.forEach((field, i) => {
+                let sortIndicator = '';
+                if (currentSortColumn === field) {
+                    sortIndicator = sortAscending ? ' 🔼' : ' 🔽';
+                }
+                tableHTML += `<th onclick="sortTable('${field.replace(/'/g, "\\'")}', ${i})">${field}${sortIndicator}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            data.forEach(row => {
+                tableHTML += '<tr>';
+                fields.forEach(field => {
+                    // Safe injection
+                    const val = row[field] !== undefined ? row[field] : '';
+                    tableHTML += `<td>${val}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+
+        function sortTable(columnName, index) {
+            if (currentSortColumn === columnName) {
+                sortAscending = !sortAscending;
+            } else {
+                currentSortColumn = columnName;
+                sortAscending = true;
+            }
+            
+            parsedData.data.sort((a, b) => {
+                let valA = a[columnName] || '';
+                let valB = b[columnName] || '';
+                
+                // Try numeric sort first
+                let numA = parseFloat(valA);
+                let numB = parseFloat(valB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return sortAscending ? numA - numB : numB - numA;
+                }
+                
+                // Fallback to string sort
+                valA = valA.toString().toLowerCase();
+                valB = valB.toString().toLowerCase();
+                
+                if (valA < valB) return sortAscending ? -1 : 1;
+                if (valA > valB) return sortAscending ? 1 : -1;
+                return 0;
+            });
+            
+            renderTable(parsedData.data, parsedData.meta.fields);
+        }
+
+        function toggleView() {
+            const content = document.getElementById('content');
+            const source = document.getElementById('source-view');
+            if (source.style.display === 'block') {
+                source.style.display = 'none';
+                content.style.display = 'block';
+            } else {
+                source.style.display = 'block';
+                content.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
